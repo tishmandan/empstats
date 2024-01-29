@@ -5,9 +5,41 @@ class Interview_data:
     def __init__(self) -> None:
         self.data_file = self.read_settings_file()["data_file"]
 
+    def default_data_file(self):
+        open(self.data_file, "w").write("""{"1 - 1": {"Title": "Example 1", "Location": "MI", "Rejected": "N/A", "Resume": "res1", "Week": "1", "Interview": "1", "Website": "N/A", "Tech Skills": "C# .Net", "Applications": "200+", "Comebacks": "0"}}""")
+
     def read_data_file(self) -> dict:
+        
+        
         file = open(self.data_file, "r").read()
-        return json.loads(file)
+        if file:
+            return json.loads(file)
+        else:
+          
+           self.default_data_file()
+           return self.read_data_file()
+    
+
+    def get_last_interview(self) -> tuple:
+        interview_data = self.read_data_file()
+        week = 0
+        interview_num = 0
+
+        # Get the last week
+        for k,v in interview_data.items():
+
+            if int(k[0]) > week:
+                week = int(k[0])
+
+        # Get the last day
+        for k, v in interview_data.items():
+            if int(k[0]) == week and int(k[-1]) > interview_num:
+                interview_num = int(k[-1])
+                
+        
+        return (week, interview_num)
+        
+      
     
 
     def interview_window(self, data:dict):
@@ -35,7 +67,6 @@ class Interview_data:
             data["data_file"] = self.data_file_path.get()
             open(self.data_file, "w").write(json.dumps(data))
 
-        print(data)
         window = tk.Tk()
         window.geometry("400x400")
         window.title("Settings")
@@ -50,13 +81,13 @@ class Interview_data:
             
             
     def save(self):
-        user_input = {f"{self.week.get()} - {self.interview.get()}":{
+        last_interview = self.get_last_interview()
+        user_input = {f"{self.week.get()} - {last_interview[1]}":{
             "Title": self.title.get(),
             "Location": self.location.get(),
             "Rejected": self.rejected.get(),
             "Resume": self.resume.get(),
             "Week": self.week.get(),
-            "Interview": self.interview.get(),
             "Website": self.website.get(),
             "Tech Skills": self.tech_skills.get(),
             "Applications":self.applications_number.get(),
@@ -65,7 +96,6 @@ class Interview_data:
 
         data = json.dumps({**self.read_data_file(), **user_input})
         open(self.data_file, "w").write(data)
-        # Des.config(text=f"You entered: {user_input}")
 
     def app(self):
         app = tk.Tk()
@@ -101,10 +131,10 @@ class Interview_data:
         self.week = tk.Entry(app)
         self.week.pack(pady=5)
 
-        interview_label = tk.Label(app, text="Interview:")
-        interview_label.pack()
-        self.interview = tk.Entry(app)
-        self.interview.pack(pady=5)
+        # interview_label = tk.Label(app, text="Interview:")
+        # interview_label.pack()
+        # self.interview = tk.Entry(app)
+        # self.interview.pack(pady=5)
 
         website_label = tk.Label(app, text="Applications per Website (e.g., linkedin:10, remoteok:13 ):")
         website_label.pack()
@@ -138,4 +168,5 @@ class Interview_data:
         app.mainloop()
 
 
+# print(Interview_data().get_last_interview())
 Interview_data().app()
